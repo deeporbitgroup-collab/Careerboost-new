@@ -1,159 +1,346 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Menu, X } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
-interface NavbarProps {
-  onOpenBooking: () => void;
-  onOpenPathways?: () => void;
-}
-const Navbar = ({
-  onOpenBooking,
-  onOpenPathways
-}: NavbarProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const {
-    language,
-    toggleLanguage
-  } = useLanguage();
-  const navItems = [{
-    label: language === 'it' ? "Chi Siamo" : "About Us",
-    href: "/#chi-siamo",
-    sectionId: "about"
-  }, {
-    label: language === 'it' ? "Servizi" : "Services",
-    href: "/#servizi",
-    sectionId: "services"
-  }, {
-    label: language === 'it' ? "Esperti" : "Experts",
-    href: "/#esperti",
-    sectionId: "experts"
-  }, {
-    label: "Partnerships",
-    href: "/#partnership",
-    sectionId: "partnerships"
-  }, {
-    label: language === 'it' ? "Contatti" : "Contacts",
-    href: "/#contatti",
-    sectionId: "contact"
-  }];
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Menu, X, ChevronDown } from "lucide-react";
+import { useI18n } from "@/i18n";
 
-  const handleNavClick = (item: typeof navItems[0]) => {
+// action: "route" → navigate(value)  |  "portal" → navigate to client portal with category
+const mentoringDropdown = {
+  it: [
+    { label: "About", action: "route", value: "/mentoring" },
+    { label: "Liceo → Università", action: "portal", value: "Take+Off" },
+    { label: "Trasferimenti Universitari", action: "portal", value: "Layover" },
+    { label: "Università → Master", action: "portal", value: "Summit" },
+    { label: "Internship Placement", action: "portal", value: "Altitude" },
+  ],
+  en: [
+    { label: "About", action: "route", value: "/mentoring" },
+    { label: "High School → University", action: "portal", value: "Take+Off" },
+    { label: "University Transfers", action: "portal", value: "Layover" },
+    { label: "University → Master's", action: "portal", value: "Summit" },
+    { label: "Internship Placement", action: "portal", value: "Altitude" },
+  ],
+} as const;
+
+const talentPoolDropdown = {
+  it: [
+    { label: "About", action: "route", value: "/talent-pool-about" },
+    { label: "Piattaforma", action: "route", value: "/talent-pool" },
+  ],
+  en: [
+    { label: "About", action: "route", value: "/talent-pool-about" },
+    { label: "Platform", action: "route", value: "/talent-pool" },
+  ],
+} as const;
+
+const preparazioneDropdown = {
+  it: [
+    { label: "About", action: "route", value: "/preparazione" },
+    { label: "Masterclass", action: "route", value: "/preparazione#masterclass" },
+    { label: "Mock Interview", action: "route", value: "/preparazione#mock-interview" },
+    { label: "CV e Cover Letter", action: "route", value: "/preparazione#cv-cover" },
+  ],
+  en: [
+    { label: "About", action: "route", value: "/preparazione" },
+    { label: "Masterclass", action: "route", value: "/preparazione#masterclass" },
+    { label: "Mock Interview", action: "route", value: "/preparazione#mock-interview" },
+    { label: "CV & Cover Letter", action: "route", value: "/preparazione#cv-cover" },
+  ],
+} as const;
+
+const copy = {
+  it: {
+    home: "Home",
+    mentoring: "Mentoring",
+    preparazione: "Preparazione",
+    talentPool: "Talent Pool",
+    areaPersonale: "Area Personale",
+    menu: "Menu",
+  },
+  en: {
+    home: "Home",
+    mentoring: "Mentoring",
+    preparazione: "Preparation",
+    talentPool: "Talent Pool",
+    areaPersonale: "My Account",
+    menu: "Menu",
+  },
+} as const;
+
+type DropdownItem = { label: string; action: string; value: string };
+
+const Navbar = () => {
+  const { language, setLanguage } = useI18n();
+  const c = copy[language];
+  const [isOpen, setIsOpen] = useState(false);
+  const [mentoringOpen, setMentoringOpen] = useState(false);
+  const [mobileMentoringOpen, setMobileMentoringOpen] = useState(false);
+  const [talentPoolOpen, setTalentPoolOpen] = useState(false);
+  const [mobileTalentPoolOpen, setMobileTalentPoolOpen] = useState(false);
+  const [prepOpen, setPrepOpen] = useState(false);
+  const [mobilePrepOpen, setMobilePrepOpen] = useState(false);
+
+  const mentoringRef = useRef<HTMLDivElement>(null);
+  const talentPoolRef = useRef<HTMLDivElement>(null);
+  const prepRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (mentoringRef.current && !mentoringRef.current.contains(e.target as Node))
+        setMentoringOpen(false);
+      if (talentPoolRef.current && !talentPoolRef.current.contains(e.target as Node))
+        setTalentPoolOpen(false);
+      if (prepRef.current && !prepRef.current.contains(e.target as Node))
+        setPrepOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const closeAll = () => {
     setIsOpen(false);
-    if (item.href === "/talent-pool") {
-      navigate("/talent-pool");
-    } else if (item.sectionId) {
-      // Se siamo già sulla home page, fai solo smooth scroll
-      if (location.pathname === "/") {
-        const element = document.getElementById(item.sectionId);
-        if (element) {
-          element.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-          // Update URL hash without navigation
-          window.history.pushState(null, "", `#${item.sectionId}`);
-        }
-      } else {
-        // Se siamo su un'altra pagina, naviga alla home con l'hash
-        navigate(`/#${item.sectionId}`);
-      }
+    setMentoringOpen(false);
+    setMobileMentoringOpen(false);
+    setTalentPoolOpen(false);
+    setMobileTalentPoolOpen(false);
+    setPrepOpen(false);
+    setMobilePrepOpen(false);
+  };
+
+  const handleItem = (item: DropdownItem) => {
+    closeAll();
+    if (item.action === "portal") {
+      navigate(`/client-portal/services?category=${item.value}`);
+    } else {
+      navigate(item.value);
     }
   };
 
-  // Handle hash navigation on page load or route change
-  useEffect(() => {
-    if (location.pathname === "/" && location.hash) {
-      const sectionId = location.hash.replace("#", "");
-      // Map URL hash to actual section IDs
-      const hashToSectionMap: Record<string, string> = {
-        "chi-siamo": "about",
-        "servizi": "services",
-        "esperti": "experts",
-        "partnership": "partnerships",
-        "why-choose-us": "why-choose-us",
-        "contatti": "contact"
-      };
-      const targetId = hashToSectionMap[sectionId] || sectionId;
-      setTimeout(() => {
-        const element = document.getElementById(targetId);
-        if (element) {
-          element.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-        }
-      }, 100);
-    }
-  }, [location]);
-  return <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-card-custom">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-[56px] md:h-16">
-          {/* Brand (text-only, shifted left) */}
-          <button onClick={() => navigate("/")} className="flex items-center cursor-pointer hover:opacity-90 transition-opacity -ml-1 md:-ml-2">
-            <span className="text-[18px] md:text-2xl font-bold text-primary tracking-tight">Career Pilot</span>
+  const dropdownPanel = (items: readonly DropdownItem[], width = "w-52") => (
+    <div className={`absolute left-0 top-full mt-3 ${width} overflow-hidden rounded-xl border border-white/10 bg-navy shadow-2xl shadow-black/40`}>
+      {items.map((item, i) => (
+        <button
+          key={item.label}
+          onClick={() => handleItem(item)}
+          className={`w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-white/8 hover:text-white ${
+            i === 0
+              ? "border-b border-white/10 font-semibold text-white"
+              : "font-medium text-white/65"
+          }`}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const mobileDropdown = (items: readonly DropdownItem[]) => (
+    <div className="ml-3 mt-1 flex flex-col gap-0.5 border-l border-white/10 pl-3">
+      {items.map((item, i) => (
+        <button
+          key={item.label}
+          onClick={() => handleItem(item)}
+          className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-white/10 hover:text-white ${
+            i === 0 ? "font-semibold text-white" : "text-white/60"
+          }`}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  return (
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "border-b border-white/10 bg-navy/80 backdrop-blur"
+          : "border-b border-transparent bg-transparent"
+      }`}
+    >
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+
+        {/* Logo */}
+        <button
+          onClick={() => { closeAll(); navigate("/"); }}
+          className="text-lg font-semibold tracking-tight text-white transition-opacity hover:opacity-90"
+        >
+          CareerBoost
+        </button>
+
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-8 md:flex">
+
+          {/* Home */}
+          <button
+            onClick={() => { closeAll(); navigate("/"); }}
+            className="text-sm font-medium text-white/80 transition-colors hover:text-white"
+          >
+            {c.home}
           </button>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6 lg:space-x-10">
-            {navItems.map(item => <button key={item.label} onClick={() => handleNavClick(item)} className={`text-steel-gray hover:text-primary transition-colors duration-300 font-medium flex items-center gap-2 ${location.pathname === "/" && location.hash === `#${item.sectionId}` ? "text-primary" : ""}`}>
-                {item.label}
-              </button>)}
-          </div>
-
-          {/* CTA Button */}
-          <div className="hidden md:flex items-center space-x-3 lg:space-x-4">
+          {/* Mentoring */}
+          <div className="relative" ref={mentoringRef}>
             <button
-              onClick={() => navigate('/auth')}
-              className="text-sm font-semibold text-sky-blue hover:text-primary transition-colors duration-300"
+              onClick={() => { setMentoringOpen((v) => !v); setTalentPoolOpen(false); setPrepOpen(false); }}
+              className="flex items-center gap-1 text-sm font-medium text-white/80 transition-colors hover:text-white"
             >
-              Crew Portal
+              {c.mentoring}
+              <ChevronDown className={`size-3.5 transition-transform duration-200 ${mentoringOpen ? "rotate-180" : ""}`} />
             </button>
-            <Button className="bg-primary text-primary-foreground hover:opacity-90 shadow-aviation transition-all duration-300 transform hover:scale-105" onClick={() => navigate('/client-portal/auth')}>
-              My Flight Plan
-            </Button>
+            {mentoringOpen && dropdownPanel(mentoringDropdown[language])}
           </div>
 
-          {/* Mobile Language Toggle and Menu Button */}
-          <div className="md:hidden flex items-center space-x-2">
-            {/* Mobile menu button */}
-            <button className="p-2 min-w-[40px] min-h-[40px] flex items-center justify-center" onClick={() => setIsOpen(!isOpen)}>
-              {isOpen ? <X className="h-6 w-6 text-primary" /> : <Menu className="h-6 w-6 text-primary" />}
+          {/* Preparazione */}
+          <div className="relative" ref={prepRef}>
+            <button
+              onClick={() => { setPrepOpen((v) => !v); setMentoringOpen(false); setTalentPoolOpen(false); }}
+              className="flex items-center gap-1 text-sm font-medium text-white/80 transition-colors hover:text-white"
+            >
+              {c.preparazione}
+              <ChevronDown className={`size-3.5 transition-transform duration-200 ${prepOpen ? "rotate-180" : ""}`} />
+            </button>
+            {prepOpen && dropdownPanel(preparazioneDropdown[language])}
+          </div>
+
+          {/* Talent Pool */}
+          <div className="relative" ref={talentPoolRef}>
+            <button
+              onClick={() => { setTalentPoolOpen((v) => !v); setMentoringOpen(false); setPrepOpen(false); }}
+              className="flex items-center gap-1 text-sm font-medium text-white/80 transition-colors hover:text-white"
+            >
+              {c.talentPool}
+              <ChevronDown className={`size-3.5 transition-transform duration-200 ${talentPoolOpen ? "rotate-180" : ""}`} />
+            </button>
+            {talentPoolOpen && dropdownPanel(talentPoolDropdown[language], "w-44")}
+          </div>
+
+        </nav>
+
+        {/* Desktop CTA */}
+        <div className="hidden md:flex items-center gap-4">
+          <div className="flex items-center rounded-full border border-white/15 bg-white/5 p-0.5 text-xs font-semibold">
+            <button
+              onClick={() => setLanguage("it")}
+              className={`rounded-full px-2.5 py-1 transition-colors ${language === "it" ? "bg-cb-accent text-white" : "text-white/50 hover:text-white"}`}
+              aria-pressed={language === "it"}
+            >
+              IT
+            </button>
+            <button
+              onClick={() => setLanguage("en")}
+              className={`rounded-full px-2.5 py-1 transition-colors ${language === "en" ? "bg-cb-accent text-white" : "text-white/50 hover:text-white"}`}
+              aria-pressed={language === "en"}
+            >
+              EN
+            </button>
+          </div>
+          <button
+            onClick={() => navigate("/client-portal/auth")}
+            className="rounded-full bg-cb-accent px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          >
+            {c.areaPersonale}
+          </button>
+        </div>
+
+        {/* Mobile hamburger */}
+        <button
+          className="md:hidden p-2 text-white"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Menu"
+        >
+          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="md:hidden border-t border-white/10 bg-navy px-6 pb-6 pt-4">
+          <div className="flex flex-col gap-1">
+
+            {/* Home */}
+            <button
+              onClick={() => { closeAll(); navigate("/"); }}
+              className="w-full rounded-lg px-3 py-3 text-left text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+            >
+              {c.home}
+            </button>
+
+            {/* Mentoring */}
+            <div>
+              <button
+                onClick={() => setMobileMentoringOpen((v) => !v)}
+                className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                {c.mentoring}
+                <ChevronDown className={`size-4 transition-transform duration-200 ${mobileMentoringOpen ? "rotate-180" : ""}`} />
+              </button>
+              {mobileMentoringOpen && mobileDropdown(mentoringDropdown[language])}
+            </div>
+
+            {/* Preparazione */}
+            <div>
+              <button
+                onClick={() => setMobilePrepOpen((v) => !v)}
+                className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                {c.preparazione}
+                <ChevronDown className={`size-4 transition-transform duration-200 ${mobilePrepOpen ? "rotate-180" : ""}`} />
+              </button>
+              {mobilePrepOpen && mobileDropdown(preparazioneDropdown[language])}
+            </div>
+
+            {/* Talent Pool */}
+            <div>
+              <button
+                onClick={() => setMobileTalentPoolOpen((v) => !v)}
+                className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                {c.talentPool}
+                <ChevronDown className={`size-4 transition-transform duration-200 ${mobileTalentPoolOpen ? "rotate-180" : ""}`} />
+              </button>
+              {mobileTalentPoolOpen && mobileDropdown(talentPoolDropdown[language])}
+            </div>
+
+          </div>
+
+          <div className="mt-4 flex items-center justify-center rounded-full border border-white/15 bg-white/5 p-0.5 text-xs font-semibold">
+            <button
+              onClick={() => setLanguage("it")}
+              className={`w-1/2 rounded-full px-2.5 py-2 transition-colors ${language === "it" ? "bg-cb-accent text-white" : "text-white/50 hover:text-white"}`}
+              aria-pressed={language === "it"}
+            >
+              Italiano
+            </button>
+            <button
+              onClick={() => setLanguage("en")}
+              className={`w-1/2 rounded-full px-2.5 py-2 transition-colors ${language === "en" ? "bg-cb-accent text-white" : "text-white/50 hover:text-white"}`}
+              aria-pressed={language === "en"}
+            >
+              English
+            </button>
+          </div>
+
+          <div className="mt-3">
+            <button
+              onClick={() => { closeAll(); navigate("/client-portal/auth"); }}
+              className="w-full rounded-full bg-cb-accent px-5 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            >
+              {c.areaPersonale}
             </button>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isOpen && <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-0.5 bg-white shadow-lg rounded-lg mt-2">
-              {navItems.map(item => <button key={item.label} onClick={() => handleNavClick(item)} className={`w-full flex items-center justify-between px-3 py-3 min-h-[44px] text-[16px] text-steel-gray hover:text-primary hover:bg-runway-gray rounded-md transition-colors duration-300 text-left ${location.pathname === "/" && location.hash === `#${item.sectionId}` ? "text-primary bg-runway-gray/50" : ""}`}>
-                  <span>{item.label}</span>
-                </button>)}
-              
-              <div className="px-3 py-2 mt-2 space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full min-h-[48px] border-sky-blue text-sky-blue hover:bg-sky-blue/10 text-[16px]"
-                  onClick={() => {
-                    setIsOpen(false);
-                    navigate('/auth');
-                  }}
-                >
-                  Crew Portal
-                </Button>
-                <Button className="w-full min-h-[48px] bg-primary text-primary-foreground hover:opacity-90 text-[16px]" onClick={() => {
-              setIsOpen(false);
-              navigate('/client-portal/auth');
-            }}>
-                  My Flight Plan
-                </Button>
-              </div>
-            </div>
-          </div>}
-      </div>
-    </nav>;
+      )}
+    </header>
+  );
 };
+
 export default Navbar;

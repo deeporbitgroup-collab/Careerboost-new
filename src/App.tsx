@@ -54,6 +54,10 @@ import KnowledgeBaseAdmin from "./pages/admin/KnowledgeBaseAdmin";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import CvBuilder from "./pages/CvBuilder";
+import MentoringPage from "./pages/MentoringPage";
+import { ScrollToTop } from "./components/ScrollToTop";
+import TalentPoolAboutPage from "./pages/TalentPoolAboutPage";
+import PreparazionePage from "./pages/PreparazionePage";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +69,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/terms" element={<Terms />} />
@@ -180,6 +185,10 @@ const App = () => (
               <Route path="/partner/dashboard" element={<Navigate to="/app/partner" replace />} />
               <Route path="/admin/dashboard" element={<Navigate to="/app/admin" replace />} />
               
+              <Route path="/mentoring" element={<MentoringPage />} />
+              <Route path="/talent-pool-about" element={<TalentPoolAboutPage />} />
+              <Route path="/preparazione" element={<PreparazionePage />} />
+
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

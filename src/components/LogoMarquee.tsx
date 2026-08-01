@@ -3,6 +3,7 @@ import { useMemo } from "react";
 export interface MarqueeItem {
   name: string;
   logo: string;
+  logoWhite?: string;
   subtitle?: string;
 }
 
@@ -11,6 +12,7 @@ interface LogoMarqueeProps {
   speed?: number; // seconds for one loop
   reverse?: boolean;
   variant?: "logo" | "portrait";
+  size?: "sm" | "md";
 }
 
 /**
@@ -22,6 +24,7 @@ const LogoMarquee = ({
   speed = 40,
   reverse = false,
   variant = "logo",
+  size = "md",
 }: LogoMarqueeProps) => {
   const loopItems = useMemo(() => [...items, ...items, ...items], [items]);
 
@@ -46,7 +49,9 @@ const LogoMarquee = ({
             className={
               variant === "portrait"
                 ? "flex-shrink-0 flex flex-col bg-card rounded-2xl border border-border/40 shadow-md hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 w-[160px] md:w-[200px] overflow-hidden"
-                : "flex-shrink-0 flex flex-col items-center justify-center bg-card rounded-xl border border-border/40 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 w-[120px] md:w-[150px] h-[110px] md:h-[130px] p-3 md:p-4"
+                : size === "sm"
+                  ? "flex-shrink-0 flex flex-col items-center justify-center bg-card rounded-xl border border-border/40 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 w-[88px] md:w-[108px] h-[76px] md:h-[90px] p-2 md:p-3"
+                  : "flex-shrink-0 flex flex-col items-center justify-center bg-card rounded-xl border border-border/40 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 w-[120px] md:w-[150px] h-[110px] md:h-[130px] p-3 md:p-4"
             }
           >
             {variant === "portrait" ? (
@@ -78,7 +83,7 @@ const LogoMarquee = ({
                     src={item.logo}
                     alt={`${item.name} logo`}
                     loading="lazy"
-                    className="max-h-[55px] md:max-h-[70px] max-w-full object-contain"
+                    className={size === "sm" ? "max-h-[34px] md:max-h-[42px] max-w-full object-contain" : "max-h-[55px] md:max-h-[70px] max-w-full object-contain"}
                   />
                 </div>
                 <p className="text-[10px] md:text-xs text-center text-muted-foreground font-medium leading-tight line-clamp-2">

@@ -63,6 +63,15 @@ export default {
 				'cloud-white': 'hsl(var(--cloud-white))',
 				'steel-gray': 'hsl(var(--steel-gray))',
 				'runway-gray': 'hsl(var(--runway-gray))',
+				// CareerBoost design system
+				navy: '#0a0a1f',
+				navydark: '#12143a',
+				'cb-accent': '#2430d4',
+				'cb-glow': '#4fd1e8',
+				ink: '#14152b',
+				subtle: '#454858',
+				line: '#e8e9ee',
+				surface2: '#f5f6f9',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -157,6 +166,10 @@ export default {
 				'gentle-pulse': {
 					'0%, 100%': { transform: 'scale(1)' },
 					'50%': { transform: 'scale(1.03)' }
+				},
+				'marquee-scroll': {
+					from: { transform: 'translateX(0)' },
+					to: { transform: 'translateX(-50%)' },
 				}
 			},
 			animation: {
@@ -174,7 +187,8 @@ export default {
 				'slide-right': 'slide-right 0.8s ease-out',
 				'rotate-in': 'rotate-in 0.7s ease-out',
 				'float': 'float 3s ease-in-out infinite',
-				'gentle-pulse': 'gentle-pulse 4s ease-in-out infinite'
+				'gentle-pulse': 'gentle-pulse 4s ease-in-out infinite',
+				'marquee': 'marquee-scroll 38s linear infinite',
 			}
 		}
 	},

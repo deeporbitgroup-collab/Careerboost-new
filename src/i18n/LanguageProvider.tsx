@@ -11,15 +11,19 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 const STORAGE_KEY = 'app-language';
 
-export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Site is English-only. Language switching has been disabled.
-  const [language, setLanguageState] = useState<Language>('en');
+const getInitialLanguage = (): Language => {
+  if (typeof window === 'undefined') return 'it';
+  const stored = localStorage.getItem(STORAGE_KEY);
+  return stored === 'en' || stored === 'it' ? stored : 'it';
+};
 
-  const setLanguage = (_lang: Language) => {
-    // No-op: site is English-only
-    setLanguageState('en');
-    localStorage.setItem(STORAGE_KEY, 'en');
-    document.documentElement.lang = 'en';
+export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [language, setLanguageState] = useState<Language>(getInitialLanguage);
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem(STORAGE_KEY, lang);
+    document.documentElement.lang = lang;
   };
 
   const t = (key: string, params?: Record<string, any>): string => {
