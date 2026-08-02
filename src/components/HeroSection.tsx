@@ -149,11 +149,15 @@ export default function HeroSection() {
   const cLoop = useMemo(() => [...companies,    ...companies,    ...companies],    []);
   const uLoop = useMemo(() => [...universities, ...universities, ...universities], []);
 
-  /* edge fade mask for marquees */
-  const maskEdge: React.CSSProperties = {
-    maskImage:       "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
-    WebkitMaskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
-  };
+  /* Edge fade overlays for marquees — plain gradient divs instead of a CSS
+     mask-image, which some browser/GPU combinations can render as fully
+     transparent (invisible row) when combined with an animated child. */
+  const EdgeFade = () => (
+    <>
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#030310] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#030310] to-transparent" />
+    </>
+  );
 
   return (
     <section
@@ -241,7 +245,8 @@ export default function HeroSection() {
         <p className="mb-4 text-center font-mono text-[9px] uppercase tracking-[0.25em] text-white/25">
           {c.alumniFrom}
         </p>
-        <div className="mx-auto max-w-3xl overflow-hidden" style={maskEdge}>
+        <div className="relative mx-auto max-w-3xl overflow-hidden">
+          <EdgeFade />
           <div
             className="flex w-max items-center gap-10 animate-scroll-carousel"
             style={{ animationDuration: "55s" }}
@@ -263,7 +268,8 @@ export default function HeroSection() {
         <p className="mt-6 mb-4 text-center font-mono text-[9px] uppercase tracking-[0.25em] text-white/25">
           {c.studentsFrom}
         </p>
-        <div className="mx-auto max-w-3xl overflow-hidden" style={maskEdge}>
+        <div className="relative mx-auto max-w-3xl overflow-hidden">
+          <EdgeFade />
           <div
             className="flex w-max items-center gap-10 animate-scroll-carousel-reverse"
             style={{ animationDuration: "70s" }}
