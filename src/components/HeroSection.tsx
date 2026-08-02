@@ -159,7 +159,7 @@ export default function HeroSection() {
     <section
       id="hero"
       className="relative flex flex-col overflow-hidden"
-      style={{ minHeight: "100vh", background: "#030310" }}
+      style={{ minHeight: "80vh", background: "#030310" }}
     >
       <HeroBackground />
 
@@ -235,7 +235,7 @@ export default function HeroSection() {
       </div>
 
       {/* ── Logo marquees (white logos, no pill containers) ── */}
-      <div className="relative shrink-0 pb-10">
+      <div className="relative shrink-0 pb-6">
 
         {/* companies */}
         <p className="mb-4 text-center font-mono text-[9px] uppercase tracking-[0.25em] text-white/25">
@@ -251,7 +251,8 @@ export default function HeroSection() {
                 key={`c-${i}`}
                 src={c.logoWhite ?? c.logo}
                 alt={c.name}
-                loading="lazy"
+                loading="eager"
+                decoding="async"
                 className="h-6 w-auto shrink-0 object-contain opacity-70 transition-opacity hover:opacity-100"
               />
             ))}
@@ -264,15 +265,16 @@ export default function HeroSection() {
         </p>
         <div className="mx-auto max-w-3xl overflow-hidden" style={maskEdge}>
           <div
-            className="flex w-max items-center gap-10 animate-scroll-carousel"
-            style={{ animationDuration: "70s", animationDirection: "reverse" }}
+            className="flex w-max items-center gap-10 animate-scroll-carousel-reverse"
+            style={{ animationDuration: "70s" }}
           >
             {uLoop.map((u, i) => (
               <img
                 key={`u-${i}`}
                 src={u.logoWhite ?? u.logo}
                 alt={u.name}
-                loading="lazy"
+                loading="eager"
+                decoding="async"
                 className="h-6 w-auto shrink-0 object-contain opacity-70 transition-opacity hover:opacity-100"
               />
             ))}

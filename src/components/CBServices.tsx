@@ -1,4 +1,5 @@
 import { useI18n } from "@/i18n";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const copy = {
   it: {
@@ -62,12 +63,14 @@ const copy = {
 export function CBServices() {
   const { language } = useI18n();
   const c = copy[language];
+  const mockInterviewAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const cvCoverAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
   return (
     <>
       {/* ── Mock Interview ── */}
       <section id="mock-interview" className="px-6 py-20 md:py-28" style={{ background: "#06060e" }}>
         <div className="mx-auto max-w-6xl">
-          <div className="grid gap-12 md:grid-cols-2 md:items-center md:gap-20">
+          <div ref={mockInterviewAnim.ref} className="grid gap-12 md:grid-cols-2 md:items-center md:gap-20" style={mockInterviewAnim.style}>
 
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.2em] text-cb-glow">
@@ -115,7 +118,7 @@ export function CBServices() {
       {/* ── CV e Cover Letter ── */}
       <section id="cv-cover" className="bg-navy px-6 pb-20 md:pb-28" style={{ background: "#0a0a1f" }}>
         <div className="mx-auto max-w-6xl">
-          <div className="grid gap-12 md:grid-cols-2 md:items-center md:gap-20">
+          <div ref={cvCoverAnim.ref} className="grid gap-12 md:grid-cols-2 md:items-center md:gap-20" style={cvCoverAnim.style}>
 
             <div className="overflow-hidden rounded-2xl bg-navydark shadow-lg shadow-black/20">
               <div className="h-64 w-full overflow-hidden">

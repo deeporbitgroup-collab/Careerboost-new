@@ -3,8 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 interface UseScrollAnimationOptions {
   threshold?: number;
   rootMargin?: string;
+  /** Kept for call-site compatibility; the reveal itself is always a plain opacity/translateY transition now. */
   animationClass?: string;
   delay?: number;
+  duration?: number;
+  distance?: number;
   stagger?: boolean;
   staggerDelay?: number;
   parallax?: boolean;
@@ -17,10 +20,11 @@ export const useScrollAnimation = (
   const {
     threshold = 0.1,
     rootMargin = '0px',
-    animationClass = 'animate-fade-up',
     delay = 0,
+    duration = 500,
+    distance = 16,
     stagger = false,
-    staggerDelay = 100,
+    staggerDelay = 80,
     parallax = false,
     parallaxSpeed = 0.5
   } = options;
@@ -29,7 +33,8 @@ export const useScrollAnimation = (
   const elementRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [parallaxOffset, setParallaxOffset] = useState(0);
-  // Intersection Observer for visibility
+
+  // Intersection Observer for visibility — fires once, then gets out of the way.
   useEffect(() => {
     const element = elementRef.current;
     if (!element) return;
@@ -40,26 +45,24 @@ export const useScrollAnimation = (
       return;
     }
 
+    let timeoutId: ReturnType<typeof setTimeout>;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !isVisible) {
-          setTimeout(() => {
-            setIsVisible(true);
-          }, delay);
+        if (entry.isIntersecting) {
+          timeoutId = setTimeout(() => setIsVisible(true), delay);
+          observer.disconnect();
         }
       },
-      {
-        threshold,
-        rootMargin
-      }
+      { threshold, rootMargin }
     );
 
     observer.observe(element);
 
     return () => {
       observer.disconnect();
+      clearTimeout(timeoutId);
     };
-  }, [threshold, rootMargin, delay, isVisible, isMobile]);
+  }, [threshold, rootMargin, delay, isMobile]);
 
   // Parallax effect
   useEffect(() => {
@@ -79,31 +82,35 @@ export const useScrollAnimation = (
     return () => window.removeEventListener('scroll', handleScroll);
   }, [parallax, parallaxSpeed]);
 
-  const getClassName = (index?: number) => {
-    const baseClass = `transition-all duration-700 ease-out`;
-    const visibleNow = isVisible || isMobile;
-    const visibilityClass = visibleNow 
-      ? `opacity-100 translate-y-0 scale-100` 
-      : 'opacity-0 translate-y-8 scale-95';
-    
-    const staggerClass = stagger && index !== undefined && visibleNow
-      ? `animation-delay-${index * staggerDelay}`
-      : '';
-    
-    const animClass = visibleNow && !isMobile ? animationClass : '';
-    
-    return `${baseClass} ${visibilityClass} ${animClass} ${staggerClass}`.trim();
-  };
+  const visibleNow = isVisible || isMobile;
 
-  const style = parallax ? {
-    transform: `translateY(${parallaxOffset}px)`
-  } : {};
+  // A plain CSS transition, driven entirely through inline styles rather than
+  // utility classes. Inline styles always win the cascade, so this can never
+  // collide with a card's own `transition-*`/hover classes or with a keyframe
+  // animation — that collision (transition and animation both fighting over
+  // opacity/transform) is what caused the earlier stutter.
+  const getStyle = (index?: number): React.CSSProperties => {
+    const itemDelay = stagger && index !== undefined ? index * staggerDelay : 0;
+    if (parallax) {
+      return { transform: `translateY(${parallaxOffset}px)` };
+    }
+    return {
+      opacity: visibleNow ? 1 : 0,
+      transform: visibleNow ? 'translateY(0)' : `translateY(${distance}px)`,
+      transition: visibleNow
+        ? `opacity ${duration}ms ease-out ${itemDelay}ms, transform ${duration}ms ease-out ${itemDelay}ms`
+        : 'none',
+    };
+  };
 
   return {
     ref: elementRef,
-    className: getClassName(),
-    getClassName,
-    style,
+    // No className is needed for the reveal itself anymore; kept as an empty
+    // string so existing `${anim.className}` interpolations stay harmless.
+    className: '',
+    getClassName: () => '',
+    style: getStyle(),
+    getStyle,
     isVisible
   };
 };
@@ -114,18 +121,15 @@ export const useStaggeredAnimation = (
   options: UseScrollAnimationOptions = {}
 ) => {
   const animation = useScrollAnimation({ ...options, stagger: true });
-  
+
   const getItemProps = (index: number) => ({
-    className: animation.getClassName(index),
-    style: {
-      ...animation.style,
-      animationDelay: `${index * (options.staggerDelay || 100)}ms`
-    }
+    className: '',
+    style: animation.getStyle(index)
   });
 
   return {
     containerRef: animation.ref,
-    containerClassName: animation.className,
+    containerClassName: '',
     getItemProps,
     isVisible: animation.isVisible
   };

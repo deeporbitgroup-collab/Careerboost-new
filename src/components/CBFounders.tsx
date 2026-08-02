@@ -1,5 +1,6 @@
 import { Linkedin } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { useScrollAnimation, useStaggeredAnimation } from "@/hooks/useScrollAnimation";
 
 interface Founder {
   name: string;
@@ -92,6 +93,8 @@ const copy = {
 export function CBFounders() {
   const { language } = useI18n();
   const c = copy[language];
+  const headerAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const gridAnim = useStaggeredAnimation(founders[language].length, { animationClass: "animate-fade-up", staggerDelay: 100 });
   return (
     <section
       id="founders"
@@ -100,7 +103,7 @@ export function CBFounders() {
     >
       <div className="mx-auto max-w-6xl">
         {/* Header */}
-        <div className="mb-14 max-w-xl">
+        <div ref={headerAnim.ref} className="mb-14 max-w-xl" style={headerAnim.style}>
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-cb-glow">{c.kicker}</p>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">
             {c.title}
@@ -111,9 +114,9 @@ export function CBFounders() {
         </div>
 
         {/* 4-column grid */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4">
-          {founders[language].map((f) => (
-            <div key={f.name} className="flex flex-col">
+        <div ref={gridAnim.containerRef} className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4">
+          {founders[language].map((f, i) => (
+            <div key={f.name} className={`flex flex-col ${gridAnim.getItemProps(i).className}`} style={gridAnim.getItemProps(i).style}>
               {/* Rectangular photo */}
               <div className="overflow-hidden rounded-xl">
                 <img

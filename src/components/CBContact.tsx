@@ -1,4 +1,5 @@
 import { useI18n } from "@/i18n";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const copy = {
   it: {
@@ -18,6 +19,7 @@ const copy = {
 export function CBContact() {
   const { language } = useI18n();
   const c = copy[language];
+  const anim = useScrollAnimation({ animationClass: "animate-fade-up" });
   return (
     <section id="contatti" className="relative overflow-hidden bg-navy">
       <div
@@ -27,7 +29,7 @@ export function CBContact() {
         }}
       />
 
-      <div className="relative mx-auto max-w-6xl px-6 py-20 text-center md:py-28">
+      <div ref={anim.ref} className="relative mx-auto max-w-6xl px-6 py-20 text-center md:py-28" style={anim.style}>
         <h2 className="mx-auto max-w-xl text-3xl font-semibold tracking-tight text-white md:text-4xl">
           {c.title}
         </h2>

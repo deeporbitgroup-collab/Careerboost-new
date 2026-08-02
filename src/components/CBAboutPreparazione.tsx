@@ -11,6 +11,7 @@ import {
   Languages,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const services = {
   it: [
@@ -131,13 +132,15 @@ export function CBAboutPreparazione() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { language } = useI18n();
   const c = copy[language];
+  const titleAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const contentAnim = useScrollAnimation({ animationClass: "animate-fade-up", delay: 100 });
 
   return (
     <section id="about-preparazione" className="py-20 md:py-28" style={{ background: "#06060e" }}>
       <div className="mx-auto max-w-6xl px-6">
 
         {/* Title */}
-        <div className="mx-auto max-w-3xl text-center">
+        <div ref={titleAnim.ref} className="mx-auto max-w-3xl text-center" style={titleAnim.style}>
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-cb-glow">
             {c.kicker}
           </p>
@@ -150,7 +153,7 @@ export function CBAboutPreparazione() {
         </div>
 
         {/* 2-col: list left / LanguageBoost right */}
-        <div className="mt-16 grid gap-10 lg:grid-cols-[1fr_300px] lg:gap-16">
+        <div ref={contentAnim.ref} className="mt-16 grid gap-10 lg:grid-cols-[1fr_300px] lg:gap-16" style={contentAnim.style}>
 
           {/* Left — services list */}
           <div>

@@ -1,4 +1,5 @@
 import { useI18n } from "@/i18n";
+import { useScrollAnimation, useStaggeredAnimation } from "@/hooks/useScrollAnimation";
 
 const programs = {
   it: [
@@ -51,6 +52,8 @@ const copy = {
 export function CBPrograms() {
   const { language } = useI18n();
   const c = copy[language];
+  const titleAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const cardsAnim = useStaggeredAnimation(programs[language].length, { animationClass: "animate-fade-up", staggerDelay: 120 });
   return (
     <section id="masterclass" className="relative overflow-hidden bg-navy px-6 py-20 md:py-28">
       <div
@@ -62,15 +65,16 @@ export function CBPrograms() {
       />
 
       <div className="relative mx-auto max-w-6xl">
-        <h2 className="text-center text-3xl font-semibold tracking-tight text-white md:text-4xl">
+        <h2 ref={titleAnim.ref} className="text-center text-3xl font-semibold tracking-tight text-white md:text-4xl" style={titleAnim.style}>
           {c.title}
         </h2>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {programs[language].map(({ image, title, description }) => (
+        <div ref={cardsAnim.containerRef} className="mt-14 grid gap-6 md:grid-cols-3">
+          {programs[language].map(({ image, title, description }, i) => (
             <div
               key={title}
-              className="group overflow-hidden rounded-2xl bg-navydark shadow-sm shadow-black/20"
+              className={`group overflow-hidden rounded-2xl bg-navydark shadow-sm shadow-black/20 ${cardsAnim.getItemProps(i).className}`}
+              style={cardsAnim.getItemProps(i).style}
             >
               <div className="w-full overflow-hidden">
                 <img

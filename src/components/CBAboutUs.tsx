@@ -13,6 +13,7 @@ import {
   Handshake,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { useScrollAnimation, useStaggeredAnimation } from "@/hooks/useScrollAnimation";
 
 const pillars = {
   it: [
@@ -93,9 +94,12 @@ const copy = {
 export function CBAboutUs() {
   const { language } = useI18n();
   const c = copy[language];
+  const pillarsAnim = useStaggeredAnimation(pillars[language].length, { animationClass: "animate-fade-up", staggerDelay: 120 });
   return (
     <section id="chi-siamo" className="px-6 py-20 md:py-28" style={{ background: "#06060e" }}>
       <div className="mx-auto max-w-6xl">
+        {/* Always visible (no scroll-reveal): this title peeks under the hero
+            on load, so it works as a visual hook inviting the user to scroll. */}
         <div className="max-w-3xl">
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-cb-glow">{c.kicker}</p>
           <h2 className="mt-4 text-2xl font-semibold leading-snug tracking-tight text-white md:text-4xl">
@@ -109,9 +113,9 @@ export function CBAboutUs() {
         </div>
 
         {/* 3-pillar diagram */}
-        <div className="mt-16 grid gap-8 md:grid-cols-3">
-          {pillars[language].map(({ title, icon: PillarIcon, items }) => (
-            <div key={title} className="flex flex-col items-center">
+        <div ref={pillarsAnim.containerRef} className="mt-16 grid gap-8 md:grid-cols-3">
+          {pillars[language].map(({ title, icon: PillarIcon, items }, i) => (
+            <div key={title} className={`flex flex-col items-center ${pillarsAnim.getItemProps(i).className}`} style={pillarsAnim.getItemProps(i).style}>
               <div className="flex w-full items-center gap-3 rounded-2xl bg-gradient-to-r from-cb-accent to-[#4338ca] px-5 py-4 shadow-lg shadow-cb-accent/20">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/15">
                   <PillarIcon className="size-[18px] text-white" strokeWidth={1.75} />

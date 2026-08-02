@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { partnerCompanies } from "@/data/partnerCompanies";
 import { useI18n } from "@/i18n";
+import { useScrollAnimation, useStaggeredAnimation } from "@/hooks/useScrollAnimation";
 
 const studentSteps = {
   it: [
@@ -182,11 +183,122 @@ const copy = {
   },
 } as const;
 
+/* ── White line-art route map: London ↔ Milan hubs ─────────────────────────── */
+const routeMapLabels = {
+  it: { london: "LONDRA", milan: "MILANO" },
+  en: { london: "LONDON", milan: "MILAN" },
+} as const;
+
+function RouteMap() {
+  const { language } = useI18n();
+  const labels = routeMapLabels[language];
+  return (
+    <div className="relative mx-auto w-full max-w-[300px] md:max-w-none">
+      <svg viewBox="0 0 320 300" className="h-full w-full" fill="none" aria-hidden="true">
+
+        {/* Abstract, decorative coastline sketch — western Europe, single stroke */}
+        <path
+          d="M46,26
+             C 40,44 54,54 48,70
+             C 40,90 60,96 56,116
+             C 52,140 78,146 74,168
+             C 70,192 96,196 100,218
+             C 104,240 128,244 140,262
+             C 156,282 190,270 210,252
+             C 226,238 214,222 232,210
+             C 250,198 244,176 262,168
+             C 278,160 270,140 252,134
+             C 236,128 240,108 224,100
+             C 208,92 210,72 192,66
+             C 172,60 168,40 148,36
+             C 122,30 96,24 46,26 Z"
+          stroke="rgba(255,255,255,0.16)"
+          strokeWidth="1.25"
+          strokeLinejoin="round"
+        />
+
+        {/* Flight path London → Milan */}
+        <path
+          d="M92,64 C 130,50 150,110 196,192"
+          stroke="#4FD1E8"
+          strokeWidth="1.5"
+          strokeDasharray="5 6"
+          strokeLinecap="round"
+          opacity="0.85"
+        />
+
+        {/* Plane glyph, sat on the path partway along */}
+        <g transform="translate(148,118) rotate(58)">
+          <path
+            d="M0,-7 L1.6,-1.5 L8,1 L8,2.6 L1.6,1.6 L0.8,6.5 L2.6,8.2 L2.6,9.4 L0,8.4 L-2.6,9.4 L-2.6,8.2 L-0.8,6.5 L-1.6,1.6 L-8,2.6 L-8,1 L-1.6,-1.5 Z"
+            fill="#ffffff"
+          />
+        </g>
+
+        {/* London hub */}
+        <g transform="translate(92,64)">
+          <circle
+            r="16"
+            stroke="rgba(79,209,232,0.3)"
+            strokeWidth="1"
+            className="origin-center animate-ping"
+            style={{ transformBox: "fill-box", animationDuration: "3s" }}
+          />
+          <circle r="10" stroke="rgba(79,209,232,0.45)" strokeWidth="1" />
+          <circle r="3.5" fill="#4FD1E8" />
+          <text
+            x="0"
+            y="-24"
+            textAnchor="middle"
+            fontSize="11"
+            fontFamily="ui-monospace, monospace"
+            letterSpacing="1.5"
+            fill="#ffffff"
+            fillOpacity="0.85"
+          >
+            {labels.london}
+          </text>
+        </g>
+
+        {/* Milan hub */}
+        <g transform="translate(196,192)">
+          <circle
+            r="16"
+            stroke="rgba(79,209,232,0.3)"
+            strokeWidth="1"
+            className="origin-center animate-ping"
+            style={{ transformBox: "fill-box", animationDuration: "3s", animationDelay: "1.2s" }}
+          />
+          <circle r="10" stroke="rgba(79,209,232,0.45)" strokeWidth="1" />
+          <circle r="3.5" fill="#4FD1E8" />
+          <text
+            x="0"
+            y="30"
+            textAnchor="middle"
+            fontSize="11"
+            fontFamily="ui-monospace, monospace"
+            letterSpacing="1.5"
+            fill="#ffffff"
+            fillOpacity="0.85"
+          >
+            {labels.milan}
+          </text>
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 export function CBAboutTalentPool() {
   const navigate = useNavigate();
   const { language } = useI18n();
   const c = copy[language];
   const companyLoop = useMemo(() => [...partnerCompanies, ...partnerCompanies, ...partnerCompanies], []);
+
+  const titleAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const introCardsAnim = useStaggeredAnimation(2, { animationClass: "animate-fade-up", staggerDelay: 150 });
+  const studentSectionAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const companySectionAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
 
   return (
     <section
@@ -197,14 +309,21 @@ export function CBAboutTalentPool() {
 
       {/* ── Title ── */}
       <div className="mx-auto max-w-6xl px-6">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-cb-glow">{c.kicker}</p>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">
-            {c.title}
-          </h2>
-          <p className="mt-5 text-sm leading-relaxed text-white/55 md:text-base">
-            {c.subtitle}
-          </p>
+        <div
+          ref={titleAnim.ref}
+          className="grid items-center gap-10 md:grid-cols-[300px_1fr] md:gap-14"
+          style={titleAnim.style}
+        >
+          <RouteMap />
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-cb-glow">{c.kicker}</p>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">
+              {c.title}
+            </h2>
+            <p className="mt-5 text-sm leading-relaxed text-white/55 md:text-base">
+              {c.subtitle}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -221,7 +340,8 @@ export function CBAboutTalentPool() {
               key={`${item.name}-${i}`}
               src={item.logoWhite ?? item.logo}
               alt={item.name}
-              loading="lazy"
+              loading="eager"
+              decoding="async"
               className="h-8 w-auto shrink-0 object-contain opacity-70 transition-opacity hover:opacity-100"
             />
           ))}
@@ -230,10 +350,10 @@ export function CBAboutTalentPool() {
 
       {/* ── Intro cards: Student | Company ── */}
       <div className="mx-auto mt-16 max-w-6xl px-6">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div ref={introCardsAnim.containerRef} className="grid gap-6 md:grid-cols-2">
 
           {/* Student card */}
-          <div className="group overflow-hidden rounded-2xl border border-white/10 bg-navydark shadow-lg shadow-black/30">
+          <div className={`group overflow-hidden rounded-2xl border border-white/10 bg-navydark shadow-lg shadow-black/30 ${introCardsAnim.getItemProps(0).className}`} style={introCardsAnim.getItemProps(0).style}>
             <div className="h-56 w-full overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=900&q=85"
@@ -266,7 +386,7 @@ export function CBAboutTalentPool() {
           </div>
 
           {/* Company card */}
-          <div className="group overflow-hidden rounded-2xl border border-white/10 bg-navydark shadow-lg shadow-black/30">
+          <div className={`group overflow-hidden rounded-2xl border border-white/10 bg-navydark shadow-lg shadow-black/30 ${introCardsAnim.getItemProps(1).className}`} style={introCardsAnim.getItemProps(1).style}>
             <div className="h-56 w-full overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1758518730264-9235a1e5416b?w=900&q=85"
@@ -305,7 +425,7 @@ export function CBAboutTalentPool() {
           SEZIONE STUDENTI
       ══════════════════════════════════════════════════════════════ */}
       <div className="mx-auto mt-20 max-w-6xl px-6">
-        <div className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16">
+        <div ref={studentSectionAnim.ref} className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16" style={studentSectionAnim.style}>
 
           {/* Left — steps timeline */}
           <div>
@@ -383,7 +503,7 @@ export function CBAboutTalentPool() {
           SEZIONE AZIENDE
       ══════════════════════════════════════════════════════════════ */}
       <div className="mx-auto mt-20 max-w-6xl px-6">
-        <div className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16">
+        <div ref={companySectionAnim.ref} className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16" style={companySectionAnim.style}>
 
           {/* Left — screenshots card */}
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-navydark shadow-lg shadow-black/30">

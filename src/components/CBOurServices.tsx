@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { useScrollAnimation, useStaggeredAnimation } from "@/hooks/useScrollAnimation";
 
 const services = {
   it: [
@@ -68,13 +69,15 @@ export function CBOurServices() {
     const el = document.getElementById(anchor.replace("#", ""));
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  const headerAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const cardsAnim = useStaggeredAnimation(services[language].length, { animationClass: "animate-fade-up", staggerDelay: 120 });
 
   return (
     <section className="py-20 md:py-28 bg-navy">
       <div className="mx-auto max-w-6xl px-6">
 
         {/* Title */}
-        <div className="mx-auto max-w-2xl text-center mb-14">
+        <div ref={headerAnim.ref} className="mx-auto max-w-2xl text-center mb-14" style={headerAnim.style}>
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/40">{c.kicker}</p>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">
             {c.title}
@@ -82,11 +85,12 @@ export function CBOurServices() {
         </div>
 
         {/* Cards */}
-        <div className="grid gap-6 sm:grid-cols-3">
-          {services[language].map((s) => (
+        <div ref={cardsAnim.containerRef} className="grid gap-6 sm:grid-cols-3">
+          {services[language].map((s, i) => (
             <div
               key={s.title}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/20 bg-transparent transition-all duration-300 hover:border-white/60 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_8px_32px_rgba(255,255,255,0.06)]"
+              className={`group relative flex flex-col overflow-hidden rounded-2xl border border-white/20 bg-transparent transition-all duration-300 hover:border-white/60 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_8px_32px_rgba(255,255,255,0.06)] ${cardsAnim.getItemProps(i).className}`}
+              style={cardsAnim.getItemProps(i).style}
             >
               {/* Image */}
               <div className="h-52 w-full overflow-hidden">

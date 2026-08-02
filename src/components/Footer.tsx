@@ -40,7 +40,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-primary text-white py-8 md:py-16">
-      <div ref={footerAnimation.ref} className={`container mx-auto px-4 ${footerAnimation.className}`}>
+      <div ref={footerAnimation.ref} className="container mx-auto px-4" style={footerAnimation.style}>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Logo & Description */}
           <div className="md:col-span-2">

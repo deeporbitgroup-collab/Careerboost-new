@@ -192,15 +192,32 @@ All colors MUST be HSL.
   /* Infinite scroll carousel animation */
   @keyframes scroll-carousel {
     0% {
-      transform: translateX(0);
+      transform: translate3d(0, 0, 0);
     }
     100% {
-      transform: translateX(-33.333%);
+      transform: translate3d(-33.333%, 0, 0);
     }
   }
 
   .animate-scroll-carousel {
     animation: scroll-carousel linear infinite;
+  }
+
+  /* Same loop, opposite visual direction — a dedicated keyframe (rather than
+     animation-direction: reverse) keeps this on the compositor thread so it
+     stays smooth even while other main-thread work (e.g. the hero's SVG
+     filter) is running. */
+  @keyframes scroll-carousel-reverse {
+    0% {
+      transform: translate3d(-33.333%, 0, 0);
+    }
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .animate-scroll-carousel-reverse {
+    animation: scroll-carousel-reverse linear infinite;
   }
 
   /* Vertical infinite scroll carousel */

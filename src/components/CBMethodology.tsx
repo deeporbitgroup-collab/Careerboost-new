@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { useScrollAnimation, useStaggeredAnimation } from "@/hooks/useScrollAnimation";
 
 const videoSlots = [
   { src: "/videos/video-1.MP4" },
@@ -251,6 +252,9 @@ function VideoCarousel() {
 export function CBMethodology() {
   const { language } = useI18n();
   const c = copy[language];
+  const headerAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const carouselsAnim = useScrollAnimation({ animationClass: "animate-fade-up", delay: 100 });
+  const valuesAnim = useStaggeredAnimation(values[language].length, { animationClass: "animate-fade-up", staggerDelay: 120 });
   return (
     <section
       className="px-6 py-20 md:py-28"
@@ -258,14 +262,18 @@ export function CBMethodology() {
     >
       <div className="mx-auto max-w-6xl">
 
-        <div className="mx-auto max-w-2xl text-center mb-14">
+        <div ref={headerAnim.ref} className="mx-auto max-w-2xl text-center mb-14" style={headerAnim.style}>
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-cb-accent">{c.kicker}</p>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-gray-900 md:text-4xl">
             {c.title}
           </h2>
         </div>
 
-        <div className="grid gap-10 md:grid-cols-2 md:gap-14 md:items-stretch" style={{ minHeight: "480px" }}>
+        <div
+          ref={carouselsAnim.ref}
+          className="grid gap-10 md:grid-cols-2 md:gap-14 md:items-stretch"
+          style={{ minHeight: "480px", ...carouselsAnim.style }}
+        >
 
           <div className="flex flex-col">
             <p className="mb-4 shrink-0 text-xs font-medium uppercase tracking-[0.2em] text-gray-400">{c.videoLabel}</p>
@@ -283,9 +291,9 @@ export function CBMethodology() {
 
         </div>
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-3">
-          {values[language].map(({ title, description }) => (
-            <div key={title} className="rounded-2xl border border-[#dbeafe] bg-white/80 p-6 shadow-sm">
+        <div ref={valuesAnim.containerRef} className="mt-14 grid gap-5 sm:grid-cols-3">
+          {values[language].map(({ title, description }, i) => (
+            <div key={title} className={`rounded-2xl border border-[#dbeafe] bg-white/80 p-6 shadow-sm ${valuesAnim.getItemProps(i).className}`} style={valuesAnim.getItemProps(i).style}>
               <div className="mb-3 size-1.5 rounded-full bg-cb-glow" />
               <h3 className="text-base font-semibold text-gray-900">{title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-500">{description}</p>

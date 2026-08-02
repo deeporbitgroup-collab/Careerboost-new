@@ -10,6 +10,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { universities, companies } from "@/data/coveredLogos";
 import { useI18n, type Language } from "@/i18n";
+import { useScrollAnimation, useStaggeredAnimation } from "@/hooks/useScrollAnimation";
 
 interface Mentor { name: string; photo: string; sector?: string; }
 
@@ -402,6 +403,13 @@ export function CBAboutMentoring() {
   const uniLoop = useMemo(() => [...universities, ...universities, ...universities], []);
   const companyLoop = useMemo(() => [...companies, ...companies, ...companies], []);
 
+  const titleAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const pathwaysNavAnim = useStaggeredAnimation(pathwayNav[language].length, { animationClass: "animate-fade-up", staggerDelay: 90 });
+  const internshipAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const masterAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const liceoAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+  const becomeMentorAnim = useScrollAnimation({ animationClass: "animate-fade-up" });
+
   return (
     <section
       id="about-mentoring"
@@ -411,7 +419,7 @@ export function CBAboutMentoring() {
 
       {/* ── Title ── */}
       <div className="mx-auto max-w-6xl px-6">
-        <div className="mx-auto max-w-3xl text-center">
+        <div ref={titleAnim.ref} className="mx-auto max-w-3xl text-center" style={titleAnim.style}>
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-cb-glow">{c.kicker}</p>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">
             {c.title}
@@ -489,7 +497,8 @@ export function CBAboutMentoring() {
               key={`u-${i}`}
               src={u.logoWhite ?? u.logo}
               alt={u.name}
-              loading="lazy"
+              loading="eager"
+              decoding="async"
               className="h-8 w-auto shrink-0 object-contain opacity-70 transition-opacity hover:opacity-100"
             />
           ))}
@@ -502,15 +511,16 @@ export function CBAboutMentoring() {
         <div className="pointer-events-none absolute bottom-0 left-0 top-8 z-10 w-16 bg-gradient-to-r from-[#0a0a1f] to-transparent" />
         <div className="pointer-events-none absolute bottom-0 right-0 top-8 z-10 w-16 bg-gradient-to-l from-[#0a0a1f] to-transparent" />
         <div
-          className="flex w-max items-center gap-10 animate-scroll-carousel"
-          style={{ animationDuration: "50s", animationDirection: "reverse" }}
+          className="flex w-max items-center gap-10 animate-scroll-carousel-reverse"
+          style={{ animationDuration: "50s" }}
         >
           {companyLoop.map((co, i) => (
             <img
               key={`c-${i}`}
               src={co.logoWhite ?? co.logo}
               alt={co.name}
-              loading="lazy"
+              loading="eager"
+              decoding="async"
               className="h-8 w-auto shrink-0 object-contain opacity-70 transition-opacity hover:opacity-100"
             />
           ))}
@@ -529,9 +539,9 @@ export function CBAboutMentoring() {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
-          {pathwayNav[language].map(({ id, label, icon: Icon }) => (
-            <div key={id} className="flex flex-col items-center gap-2.5">
+        <div ref={pathwaysNavAnim.containerRef} className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
+          {pathwayNav[language].map(({ id, label, icon: Icon }, i) => (
+            <div key={id} className={`flex flex-col items-center gap-2.5 ${pathwaysNavAnim.getItemProps(i).className}`} style={pathwaysNavAnim.getItemProps(i).style}>
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-cb-glow/25 bg-cb-glow/10">
                 <Icon className="size-5 text-cb-glow" strokeWidth={1.5} />
               </div>
@@ -550,7 +560,7 @@ export function CBAboutMentoring() {
           INTERNSHIP PLACEMENT  —  accordion left | card right
       ══════════════════════════════════════════════════════════════════════ */}
       <div id="pathway-internship" className="mx-auto mt-20 max-w-6xl scroll-mt-24 px-6">
-        <div className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16">
+        <div ref={internshipAnim.ref} className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16" style={internshipAnim.style}>
 
           {/* Left — accordion */}
           <div>
@@ -592,7 +602,7 @@ export function CBAboutMentoring() {
           UNIVERSITÀ → MASTER  —  card left | accordion right
       ══════════════════════════════════════════════════════════════════════ */}
       <div id="pathway-master" className="mx-auto mt-20 max-w-6xl scroll-mt-24 px-6">
-        <div className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16">
+        <div ref={masterAnim.ref} className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16" style={masterAnim.style}>
 
           {/* Left — card */}
           <PathwayCard
@@ -638,7 +648,7 @@ export function CBAboutMentoring() {
         <div id="pathway-liceo" />
         <div id="pathway-trasferimenti" style={{ marginTop: -1 }} />
 
-        <div className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16">
+        <div ref={liceoAnim.ref} className="grid gap-12 md:grid-cols-2 md:items-start md:gap-16" style={liceoAnim.style}>
 
           {/* Left — accordion */}
           <div>
@@ -677,7 +687,7 @@ export function CBAboutMentoring() {
       </div>
 
       {/* ── Diventa mentor ── */}
-      <div className="mx-auto mt-16 max-w-6xl px-6">
+      <div ref={becomeMentorAnim.ref} className="mx-auto mt-16 max-w-6xl px-6" style={becomeMentorAnim.style}>
         <div className="border-t border-white/10 pt-10 text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/30">{c.becomeMentor.kicker}</p>
           <p className="mt-3 text-lg font-semibold text-white md:text-xl">
