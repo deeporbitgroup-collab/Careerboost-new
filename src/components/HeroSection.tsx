@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { universities, companies } from "@/data/coveredLogos";
+import { CURATED_MENTOR_IDS } from "@/data/curatedMentors";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 
@@ -27,7 +28,7 @@ const copy = {
     titleLine3: "migliori opportunità",
     subtitle:
       "Dallo studio alla carriera: mentor d'eccellenza al tuo fianco, preparazione mirata e visibilità diretta presso le aziende partner.",
-    mentorCount: "60+ mentor selezionati",
+    mentorCount: "Mentor selezionati a mano",
     mentorCountSub: "dalle migliori aziende e università",
     alumniFrom: "Alumni da aziende come",
     studentsFrom: "Studenti e alumni da",
@@ -39,7 +40,7 @@ const copy = {
     titleLine3: "best opportunities",
     subtitle:
       "From study to career: outstanding mentors by your side, targeted preparation and direct visibility with partner companies.",
-    mentorCount: "60+ selected mentors",
+    mentorCount: "Hand-picked mentors",
     mentorCountSub: "from the best companies and universities",
     alumniFrom: "Alumni from companies like",
     studentsFrom: "Students and alumni from",
@@ -128,6 +129,7 @@ export default function HeroSection() {
       .eq("role", "ASSOCIATE")
       .eq("status", "approved")
       .not("photo_url", "is", null)
+      .in("id", CURATED_MENTOR_IDS)
       .limit(6)
       .then(({ data }) => {
         if (!data) return;

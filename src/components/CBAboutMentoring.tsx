@@ -6,13 +6,43 @@ import {
   BookOpen,
   Repeat2,
   ChevronDown,
+  Linkedin,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { universities, companies } from "@/data/coveredLogos";
+import { CURATED_MENTOR_IDS } from "@/data/curatedMentors";
+import { MENTOR_BIOS } from "@/data/mentorBios";
 import { useI18n, type Language } from "@/i18n";
 import { useScrollAnimation, useStaggeredAnimation } from "@/hooks/useScrollAnimation";
 
-interface Mentor { name: string; photo: string; sector?: string; }
+interface Mentor {
+  id: string;
+  name: string;
+  photo: string;
+  university?: string;
+  university2?: string;
+  masterProgram?: string;
+  sector?: string;
+  linkedinUrl?: string;
+  bio?: string;
+}
+
+type ExplorerCategory = "university" | "master" | "career";
+
+// Universities hidden from the "University" explorer tab on request (kept
+// out of the value list; mentors there still surface under Master/Career).
+const EXCLUDED_UNIVERSITIES = new Set([
+  "queen's university belfast",
+  "queens university belfast",
+  "university of belfast",
+  "universitat pompeu fabra",
+  "university of pisa",
+  "università degli studi di genova",
+]);
+
+// Master's programmes hidden from the "Master Degree" explorer tab on
+// request (mentors there still surface under University/Career).
+const EXCLUDED_MASTERS = new Set(["heriot-watt university"]);
 
 const scrollTo = (id: string) =>
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -237,6 +267,96 @@ function AccordionList({
   );
 }
 
+/* ── Mentor card (big square-cornered photo, stacked details below) ─────────── */
+function MentorCard({ mentor, viewLinkedinLabel }: { mentor: Mentor; viewLinkedinLabel: string }) {
+  return (
+    <div className="flex flex-col">
+      <div className="aspect-[3/4] w-full overflow-hidden border border-white/10 bg-navydark">
+        <img
+          src={mentor.photo}
+          alt={mentor.name}
+          loading="lazy"
+          className="h-full w-full object-cover object-top"
+          style={{ filter: "grayscale(100%) brightness(1.1) contrast(1.05)" }}
+        />
+      </div>
+      <div className="mt-5 flex items-center gap-2">
+        <p className="text-base font-semibold tracking-tight text-white">{mentor.name}</p>
+        {mentor.linkedinUrl && (
+          <a
+            href={mentor.linkedinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={viewLinkedinLabel}
+            className="shrink-0 text-white/30 transition hover:text-cb-glow"
+          >
+            <Linkedin className="size-4" />
+          </a>
+        )}
+      </div>
+      <p className="mt-1.5 text-xs font-medium uppercase tracking-[0.12em] text-white/40">
+        {[mentor.university, mentor.masterProgram, mentor.sector].filter(Boolean).join(" · ")}
+      </p>
+      {(mentor.bio || mentor.sector || mentor.university) && (
+        <p className="mt-3.5 text-sm italic leading-relaxed text-white/60">
+          {mentor.bio || [mentor.sector, mentor.university].filter(Boolean).join(" — ")}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ── Section-scoped mentor picker: fixed category, value list → mentor rows ── */
+function SectionMentorPicker({
+  groups,
+  emptyLabel,
+  viewLinkedinLabel,
+}: {
+  groups: [string, Mentor[]][];
+  emptyLabel: string;
+  viewLinkedinLabel: string;
+}) {
+  const [value, setValue] = useState<string | null>(null);
+  const mentors = useMemo(() => groups.find(([v]) => v === value)?.[1] ?? [], [groups, value]);
+
+  if (groups.length === 0) return null;
+
+  return (
+    <div className="mt-12 border-t border-white/10 pt-6">
+      <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/30">Mentors</p>
+      <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2.5">
+        {groups.map(([v]) => {
+          const isActive = value === v;
+          return (
+            <button
+              key={v}
+              onClick={() => setValue(isActive ? null : v)}
+              className={`text-sm underline-offset-4 transition-colors duration-150 ${
+                isActive ? "text-white underline decoration-cb-glow" : "text-white/55 hover:text-white/85"
+              }`}
+            >
+              {v}
+            </button>
+          );
+        })}
+      </div>
+      {value && (
+        <div className="mt-6">
+          {mentors.length === 0 ? (
+            <p className="text-sm text-white/40">{emptyLabel}</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-8 gap-y-14 sm:grid-cols-3 md:grid-cols-4">
+              {mentors.map((m) => (
+                <MentorCard key={m.id} mentor={m} viewLinkedinLabel={viewLinkedinLabel} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Navydark image card ────────────────────────────────────────────────────── */
 function PathwayCard({ image, alt, bullets }: { image: string; alt: string; bullets: string[] }) {
   return (
@@ -265,6 +385,18 @@ const copy = {
     ourMentors: "I nostri mentor",
     ourUniversities: "Università dei nostri mentor",
     ourCompanies: "Aziende dei nostri mentor",
+    explorer: {
+      kicker: "Come funziona ora",
+      title: "Non scegli tu il mentor dal catalogo. Ci pensiamo noi.",
+      body: "Il mentoring non è più un servizio a piattaforma: dopo una call gratuita con il team capiamo obiettivi, tempistiche e ciò di cui hai davvero bisogno, e ti affianchiamo il mentor più adatto dal nostro gruppo ristretto — a te basta esplorare chi ne fa parte.",
+      categories: {
+        university: "University",
+        master: "Master Degree",
+        career: "Professional Career",
+      },
+      viewLinkedin: "Profilo LinkedIn",
+      empty: "Nessun mentor disponibile per questa categoria al momento.",
+    },
     pathwaysKicker: "Percorsi",
     pathwaysTitle: "I percorsi di mentoring",
     pathwaysBadge: "Acquistabili singolarmente o come pacchetto",
@@ -318,6 +450,18 @@ const copy = {
     ourMentors: "Our mentors",
     ourUniversities: "Universities of our mentors",
     ourCompanies: "Companies of our mentors",
+    explorer: {
+      kicker: "How it works now",
+      title: "You don't pick a mentor off a list. We do.",
+      body: "Mentoring isn't a self-service platform anymore: after a free call with the team, we understand your goals, timeline and what you actually need, then match you with the right mentor from our small bench — you're welcome to explore who's part of it.",
+      categories: {
+        university: "University",
+        master: "Master Degree",
+        career: "Professional Career",
+      },
+      viewLinkedin: "LinkedIn profile",
+      empty: "No mentors available for this category right now.",
+    },
     pathwaysKicker: "Pathways",
     pathwaysTitle: "Mentoring pathways",
     pathwaysBadge: "Available individually or as a package",
@@ -376,18 +520,25 @@ export function CBAboutMentoring() {
   useEffect(() => {
     supabase
       .from("profiles")
-      .select("first_name, last_name, photo_url, sector")
+      .select("id, first_name, last_name, photo_url, sector, university, university_2, master_program, linkedin_url")
       .eq("role", "ASSOCIATE")
       .eq("status", "approved")
       .not("photo_url", "is", null)
+      .in("id", CURATED_MENTOR_IDS)
       .then(({ data }) => {
         if (!data) return;
         const items = data
           .filter((p: any) => p.photo_url?.trim())
           .map((p: any) => ({
+            id: p.id as string,
             name: `${(p.first_name || "").trim()} ${(p.last_name || "").trim()}`.trim(),
             photo: p.photo_url as string,
+            university: p.university?.trim() || undefined,
+            university2: p.university_2?.trim() || undefined,
+            masterProgram: p.master_program?.trim() || undefined,
             sector: p.sector?.trim() || undefined,
+            linkedinUrl: p.linkedin_url?.trim() || undefined,
+            bio: MENTOR_BIOS[p.id as string] || undefined,
           }))
           .filter((p) => p.name.length > 0)
           .sort((a, b) => a.name.localeCompare(b.name));
@@ -395,10 +546,31 @@ export function CBAboutMentoring() {
       });
   }, []);
 
-  const loopMentors = useMemo(
-    () => (associates.length > 0 ? [...associates, ...associates, ...associates] : []),
-    [associates]
-  );
+  /* ── Explorer: University / Master Degree / Professional Career ── */
+  const explorerGroups = useMemo(() => {
+    const build = (pick: (m: Mentor) => (string | undefined)[]) => {
+      const map = new Map<string, Mentor[]>();
+      for (const m of associates) {
+        for (const raw of pick(m)) {
+          const value = raw?.trim();
+          if (!value) continue;
+          if (!map.has(value)) map.set(value, []);
+          const bucket = map.get(value)!;
+          if (!bucket.some((x) => x.id === m.id)) bucket.push(m);
+        }
+      }
+      return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    };
+    return {
+      university: build((m) => [m.university, m.university2]).filter(
+        ([value]) => !EXCLUDED_UNIVERSITIES.has(value.toLowerCase())
+      ),
+      master: build((m) => [m.masterProgram]).filter(
+        ([value]) => !EXCLUDED_MASTERS.has(value.toLowerCase())
+      ),
+      career: build((m) => [m.sector]),
+    } satisfies Record<ExplorerCategory, [string, Mentor[]][]>;
+  }, [associates]);
 
   const uniLoop = useMemo(() => [...universities, ...universities, ...universities], []);
   const companyLoop = useMemo(() => [...companies, ...companies, ...companies], []);
@@ -428,57 +600,6 @@ export function CBAboutMentoring() {
             {c.subtitle}
           </p>
         </div>
-      </div>
-
-      {/* ── Mentor carousel ── */}
-      <div className="relative mt-14 w-full overflow-hidden">
-        <p className="mx-auto mb-6 max-w-6xl px-6 text-xs font-medium uppercase tracking-[0.2em] text-white/30">
-          {c.ourMentors}
-        </p>
-        <div className="pointer-events-none absolute bottom-0 left-0 top-8 z-10 w-24 bg-gradient-to-r from-[#0a0a1f] to-transparent" />
-        <div className="pointer-events-none absolute bottom-0 right-0 top-8 z-10 w-24 bg-gradient-to-l from-[#0a0a1f] to-transparent" />
-
-        {loopMentors.length > 0 ? (
-          <div
-            className="flex w-max gap-5"
-            style={{ animation: `cb-mentor-scroll ${associates.length * 3}s linear infinite` }}
-          >
-            {loopMentors.map((a, i) => (
-              <div key={`${a.name}-${i}`} className="flex w-[160px] flex-shrink-0 flex-col">
-                <div className="aspect-[4/5] w-full overflow-hidden">
-                  <img
-                    src={a.photo}
-                    alt={a.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover object-top"
-                    style={{ filter: "grayscale(100%) brightness(1.1) contrast(1.05)" }}
-                  />
-                </div>
-                <div className="mt-3 text-center">
-                  <p className="text-xs font-semibold text-white leading-tight">{a.name}</p>
-                  {a.sector && (
-                    <p className="mt-1 text-[10px] text-white leading-tight">{a.sector}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex gap-5 px-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex w-[160px] flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-navydark animate-pulse"
-              >
-                <div className="aspect-[4/5] w-full bg-white/5" />
-                <div className="p-3 space-y-1.5">
-                  <div className="h-2.5 rounded bg-white/10 w-3/4 mx-auto" />
-                  <div className="h-2 rounded bg-white/5 w-1/2 mx-auto" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* ── Logo carousels (bare white marks, no cards) ── */}
@@ -539,19 +660,26 @@ export function CBAboutMentoring() {
           </span>
         </div>
 
-        <div ref={pathwaysNavAnim.containerRef} className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
+        <div
+          ref={pathwaysNavAnim.containerRef}
+          className="grid grid-cols-1 divide-y divide-white/10 border-y border-white/10 sm:grid-cols-2 sm:divide-y-0 sm:divide-x md:grid-cols-4"
+        >
           {pathwayNav[language].map(({ id, label, icon: Icon }, i) => (
-            <div key={id} className={`flex flex-col items-center gap-2.5 ${pathwaysNavAnim.getItemProps(i).className}`} style={pathwaysNavAnim.getItemProps(i).style}>
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-cb-glow/25 bg-cb-glow/10">
-                <Icon className="size-5 text-cb-glow" strokeWidth={1.5} />
-              </div>
-              <button
-                onClick={() => scrollTo(id)}
-                className="flex w-full items-center justify-center rounded-full border border-cb-glow/50 bg-white/5 px-4 py-2.5 text-center text-xs font-semibold text-white shadow-[0_0_14px_rgba(79,209,232,0.4)] transition-all duration-200 hover:border-cb-glow hover:bg-white/10 hover:shadow-[0_0_20px_rgba(79,209,232,0.65)]"
-              >
+            <button
+              key={id}
+              onClick={() => scrollTo(id)}
+              className={`group flex items-center gap-3.5 py-5 text-left transition-colors duration-300 sm:px-6 sm:first:pl-0 sm:last:pr-0 ${pathwaysNavAnim.getItemProps(i).className}`}
+              style={pathwaysNavAnim.getItemProps(i).style}
+            >
+              <span className="font-mono text-[11px] text-cb-glow/40 transition-colors duration-300 group-hover:text-cb-glow">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <Icon className="size-4 shrink-0 text-white/30 transition-colors duration-300 group-hover:text-cb-glow" strokeWidth={1.5} />
+              <span className="relative text-sm font-medium leading-snug text-white/55 transition-colors duration-300 group-hover:text-white">
                 {label}
-              </button>
-            </div>
+                <span className="absolute -bottom-1.5 left-0 h-px w-0 bg-cb-glow transition-all duration-300 ease-out group-hover:w-full" />
+              </span>
+            </button>
           ))}
         </div>
       </div>
@@ -595,6 +723,15 @@ export function CBAboutMentoring() {
             bullets={c.internship.bullets}
           />
 
+          {/* Full width — mentors */}
+          <div className="md:col-span-2">
+            <SectionMentorPicker
+              groups={explorerGroups.career}
+              emptyLabel={c.explorer.empty}
+              viewLinkedinLabel={c.explorer.viewLinkedin}
+            />
+          </div>
+
         </div>
       </div>
 
@@ -635,6 +772,15 @@ export function CBAboutMentoring() {
             >
               {c.startYourPath}
             </button>
+          </div>
+
+          {/* Full width — mentors */}
+          <div className="md:col-span-2">
+            <SectionMentorPicker
+              groups={explorerGroups.master}
+              emptyLabel={c.explorer.empty}
+              viewLinkedinLabel={c.explorer.viewLinkedin}
+            />
           </div>
 
         </div>
@@ -683,6 +829,15 @@ export function CBAboutMentoring() {
             bullets={c.liceo.bullets}
           />
 
+          {/* Full width — mentors */}
+          <div className="md:col-span-2">
+            <SectionMentorPicker
+              groups={explorerGroups.university}
+              emptyLabel={c.explorer.empty}
+              viewLinkedinLabel={c.explorer.viewLinkedin}
+            />
+          </div>
+
         </div>
       </div>
 
@@ -704,13 +859,6 @@ export function CBAboutMentoring() {
           </button>
         </div>
       </div>
-
-      <style>{`
-        @keyframes cb-mentor-scroll {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-33.333%); }
-        }
-      `}</style>
     </section>
   );
 }

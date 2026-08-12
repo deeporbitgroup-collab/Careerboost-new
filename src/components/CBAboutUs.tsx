@@ -81,13 +81,13 @@ const copy = {
     kicker: "Chi siamo",
     title: "Un unico partner per il tuo percorso",
     p1: "CareerBoost supporta studenti e giovani professionisti nelle principali tappe del loro percorso: dal liceo all'università, nei trasferimenti universitari, nell'accesso ai Master e nel placement di internship e opportunità professionali.",
-    p2: "Uniamo mentoring, preparazione pratica e accesso a opportunità concrete, con oltre 60 mentor provenienti dalle migliori aziende e università internazionali, materiali dedicati alla preparazione e una Talent Pool che permette alle aziende di entrare direttamente in contatto con profili selezionati.",
+    p2: "Uniamo mentoring, preparazione pratica e accesso a opportunità concrete, con un gruppo ristretto di mentor selezionati a mano dalle migliori aziende e università internazionali, materiali dedicati alla preparazione e una Talent Pool che permette alle aziende di entrare direttamente in contatto con profili selezionati.",
   },
   en: {
     kicker: "About us",
     title: "One partner for your entire journey",
     p1: "CareerBoost supports students and young professionals through the key stages of their journey: from high school to university, through university transfers, into Master's admissions, and into internship placement and professional opportunities.",
-    p2: "We bring together mentoring, hands-on preparation and access to real opportunities, with over 60 mentors from top international companies and universities, dedicated preparation materials, and a Talent Pool that lets companies connect directly with selected profiles.",
+    p2: "We bring together mentoring, hands-on preparation and access to real opportunities, with a small, hand-picked bench of mentors from top international companies and universities, dedicated preparation materials, and a Talent Pool that lets companies connect directly with selected profiles.",
   },
 } as const;
 
