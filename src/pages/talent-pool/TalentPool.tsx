@@ -1,23 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Building, Users, Shield, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TalentPoolLanguageProvider, useTalentPoolLanguage } from "@/contexts/TalentPoolLanguageContext";
 import { useStaggeredAnimation } from "@/hooks/useScrollAnimation";
+import { PremiumServicesBanner } from "@/components/talent-pool/TalentPoolServices";
 import londonCityBg from "@/assets/london-city.jpg";
 import careerPilotLogo from "@/assets/career-pilot-logo.png";
+import accentureLogo from "@/assets/logos/companies/accenture.svg";
+import goldmanLogo from "@/assets/logos/companies/goldmansachs.svg";
+import pwcLogo from "@/assets/logos/companies/pwc.svg";
+
+const SOCIAL_PROOF_LOGOS = [
+  { src: goldmanLogo, alt: "Goldman Sachs" },
+  { src: pwcLogo, alt: "PwC" },
+  { src: accentureLogo, alt: "Accenture" },
+];
 
 const TalentPoolContent = () => {
   const navigate = useNavigate();
-  const { t, setLanguage } = useTalentPoolLanguage();
+  const { t, language, setLanguage } = useTalentPoolLanguage();
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const { containerRef, getItemProps } = useStaggeredAnimation(100);
-
-  // Force English — Talent Pool landing is English-only
-  useEffect(() => {
-    setLanguage('en');
-  }, [setLanguage]);
 
   const handleRoleSelect = (role: 'student' | 'company') => {
     setSelectedRole(role);
@@ -25,7 +30,7 @@ const TalentPoolContent = () => {
   };
 
   return (
-    <div className="min-h-[100svh] md:h-[100svh] md:overflow-hidden relative flex flex-col animate-fade-in">
+    <div className="min-h-[100svh] md:h-[100svh] md:overflow-y-auto relative flex flex-col animate-fade-in">
       {/* Background Image with Overlay */}
       <div 
         className="fixed inset-0 z-0 animate-scale-in"
@@ -51,13 +56,32 @@ const TalentPoolContent = () => {
                 <p className="text-[10px] text-sky-500/90 font-semibold tracking-widest">{t('landing.nav.subtitle')}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
+              {/* Language toggle — Italian visitors are the primary audience, so
+                  the landing is no longer locked to English. */}
+              <div className="flex items-center rounded-md border border-sky-500/20 bg-slate-900/60 p-0.5">
+                {(['it', 'en'] as const).map((lng) => (
+                  <button
+                    key={lng}
+                    type="button"
+                    onClick={() => setLanguage(lng)}
+                    className={`rounded px-2 py-1 text-xs font-bold uppercase tracking-wide transition-colors ${
+                      language === lng
+                        ? 'bg-sky-500 text-slate-950'
+                        : 'text-sky-100/60 hover:text-sky-50'
+                    }`}
+                    aria-pressed={language === lng}
+                  >
+                    {lng}
+                  </button>
+                ))}
+              </div>
               <Button
                 variant="ghost"
                 onClick={() => navigate('/')}
-                className="text-sm text-sky-100/70 hover:text-sky-50 hover:bg-white/5 border border-transparent hover:border-sky-500/20"
+                className="px-2 text-sm text-sky-100/70 hover:text-sky-50 hover:bg-white/5 border border-transparent hover:border-sky-500/20 md:px-3"
               >
-                ← {t('landing.nav.back')}
+                ← <span className="hidden sm:inline">{t('landing.nav.back')}</span>
               </Button>
             </div>
           </div>
@@ -206,6 +230,29 @@ const TalentPoolContent = () => {
                 <Button className="w-full sm:w-auto shrink-0 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg font-bold text-sm tracking-wide">
                   {t('landing.roleSelection.cvBuilder.button')}
                 </Button>
+              </div>
+            </div>
+
+            {/* Premium services — tailored database + email software + CV rewrite.
+                Opens the full-offer modal; all CTAs route to WhatsApp. */}
+            <div {...getItemProps(10)} className="mt-3 max-w-3xl mx-auto">
+              <PremiumServicesBanner />
+            </div>
+
+            {/* Social proof — logos of firms already in the pool. */}
+            <div {...getItemProps(11)} className="mt-4 flex flex-col items-center gap-2">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                {language === 'it' ? 'Aziende nella pool' : 'Companies in the pool'}
+              </p>
+              <div className="flex items-center justify-center gap-6 opacity-70">
+                {SOCIAL_PROOF_LOGOS.map((logo) => (
+                  <img
+                    key={logo.alt}
+                    src={logo.src}
+                    alt={logo.alt}
+                    className="h-5 md:h-6 w-auto object-contain brightness-0 invert"
+                  />
+                ))}
               </div>
             </div>
           </div>

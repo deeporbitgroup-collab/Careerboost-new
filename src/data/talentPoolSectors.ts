@@ -1,4 +1,4 @@
-/** Canonical company sectors — used in company registration, profile, admin, and student filters. */
+/** Canonical company sectors â€” used in company registration, profile, admin, and student filters. */
 export const TALENT_POOL_COMPANY_SECTORS = [
   "Consulting",
   "Finance",
