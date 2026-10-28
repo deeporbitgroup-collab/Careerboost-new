@@ -42,7 +42,7 @@ const studentSchema = z.object({
 const StudentAuthContent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useTalentPoolLanguage();
+  const { t, language } = useTalentPoolLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [cvFile, setCvFile] = useState<File | null>(null);
@@ -393,6 +393,68 @@ const StudentAuthContent = () => {
   };
 
 
+  // Per-step validation for the registration wizard. Full validation still
+  // runs in handleRegister on final submit (step 3).
+  // Step 1 = Profile (name + CV/cover), Step 2 = Contacts, Step 3 = Account.
+  const validateProfile = () => {
+    const e: Record<string, string> = {};
+    if (!formData.firstName.trim()) e.firstName = "Name required";
+    if (!formData.lastName.trim()) e.lastName = "Surname required";
+    setErrors(e);
+    if (Object.keys(e).length > 0) {
+      toast({
+        title: t('studentAuth.errors.validation'),
+        description: t('studentAuth.errors.validationDesc'),
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (!cvFile) {
+      toast({
+        title: t('studentAuth.errors.documentsRequired'),
+        description: t('studentAuth.errors.documentsRequiredDesc'),
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const validateContacts = () => {
+    const e: Record<string, string> = {};
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) e.email = "Invalid email";
+    if (formData.phone.trim().length < 10) e.phone = "Invalid phone number";
+    if (
+      formData.linkedin &&
+      !formData.linkedin.startsWith("https://www.linkedin.com/") &&
+      !formData.linkedin.startsWith("https://linkedin.com/")
+    ) {
+      e.linkedin = "Enter a valid LinkedIn URL (https://www.linkedin.com/...)";
+    }
+    setErrors(e);
+    if (Object.keys(e).length > 0) {
+      toast({
+        title: t('studentAuth.errors.validation'),
+        description: t('studentAuth.errors.validationDesc'),
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const goToContacts = () => {
+    if (validateProfile()) setStep(2);
+  };
+
+  const goToAccount = () => {
+    if (validateContacts()) setStep(3);
+  };
+
+  const stepLabels = language === 'it'
+    ? ['Profilo', 'Contatti', 'Accesso']
+    : ['Profile', 'Contacts', 'Account'];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-cloud-white to-runway-gray flex items-center justify-center px-4 py-8">
       <Card className="w-full max-w-2xl shadow-card-custom">
@@ -473,6 +535,27 @@ const StudentAuthContent = () => {
             
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
+                {/* Wizard stepper — breaks the long form into Profile / Contacts
+                    / Account so students don't face one wall of fields. */}
+                <div className="flex items-center justify-between gap-2 pb-1">
+                  {stepLabels.map((lbl, i) => {
+                    const n = i + 1;
+                    const active = step === n;
+                    const done = step > n;
+                    return (
+                      <div key={lbl} className="flex items-center gap-2">
+                        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${active ? 'bg-sky text-white' : done ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'}`}>
+                          {done ? '✓' : n}
+                        </span>
+                        <span className={`text-xs font-medium ${active ? 'text-sky' : 'text-steel-gray'}`}>{lbl}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* STEP 1 — Profile (photo, name, CV/cover letter) */}
+                {step === 1 && (
+                <div className="space-y-4">
                 <div className="flex flex-col items-center gap-3 rounded-lg border border-sky-blue/30 bg-sky-blue/5 p-4">
                   <Label className="self-start flex items-center gap-2 text-sm">
                     <Camera className="h-4 w-4" />
@@ -569,6 +652,19 @@ const StudentAuthContent = () => {
                   <GoldenStandardBox />
                 </div>
 
+                <Button
+                  type="button"
+                  className="w-full bg-gradient-sky text-white hover:opacity-90"
+                  onClick={goToContacts}
+                >
+                  {language === 'it' ? 'Avanti' : 'Next'}
+                </Button>
+                </div>
+                )}
+
+                {/* STEP 2 — Contacts */}
+                {step === 2 && (
+                <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">{t('studentAuth.register.email')} {t('studentAuth.register.required')}</Label>
                   <Input
@@ -607,6 +703,29 @@ const StudentAuthContent = () => {
                   <p className="text-xs text-steel-gray">Optional - Enter your full LinkedIn profile</p>
                 </div>
                 
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setStep(1)}
+                  >
+                    {language === 'it' ? 'Indietro' : 'Back'}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="flex-1 bg-gradient-sky text-white hover:opacity-90"
+                    onClick={goToAccount}
+                  >
+                    {language === 'it' ? 'Avanti' : 'Next'}
+                  </Button>
+                </div>
+                </div>
+                )}
+
+                {/* STEP 3 — Account (password, terms, platform policy) */}
+                {step === 3 && (
+                <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                   <Label htmlFor="password">{t('studentAuth.register.password')} {t('studentAuth.register.required')}</Label>
@@ -677,13 +796,25 @@ const StudentAuthContent = () => {
                   </p>
                 </div>
                 
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-sky text-white hover:opacity-90"
-                  disabled={isLoading}
-                >
-                  {isLoading ? t('studentAuth.register.loading') : t('studentAuth.register.button')}
-                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setStep(2)}
+                  >
+                    {language === 'it' ? 'Indietro' : 'Back'}
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 bg-gradient-sky text-white hover:opacity-90"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? t('studentAuth.register.loading') : t('studentAuth.register.button')}
+                  </Button>
+                </div>
+                </div>
+                )}
               </form>
 
               {/* Boost your chances: tailored database + email software + expert
