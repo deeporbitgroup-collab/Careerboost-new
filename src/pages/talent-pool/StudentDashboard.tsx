@@ -37,6 +37,7 @@ import { supabase } from "@/integrations/supabase/client";
 import StudentScheduledEventsTab from "@/components/talent-pool/StudentScheduledEventsTab";
 import TalentPoolPrepMaterial from "@/components/talent-pool/TalentPoolPrepMaterial";
 import StudentTestsTab from "@/components/talent-pool/StudentTestsTab";
+import { ServicesPromoGrid } from "@/components/talent-pool/TalentPoolServices";
 import { downloadTalentPoolDocument } from "@/lib/talentPoolDocuments";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -983,6 +984,10 @@ const StudentDashboard = () => {
               </div>
             </div>
 
+            {/* Premium services — tailored database + email software + expert
+                CV/cover rewrite. Suggested to every approved student. */}
+            <ServicesPromoGrid className="mb-6" />
+
             {/* Three sections as tabs (overview above stays outside) */}
             <Tabs defaultValue="companies" className="w-full">
               <TabsList className="grid h-auto w-full grid-cols-2 gap-1.5 mb-4 md:grid-cols-5">
@@ -1723,6 +1728,7 @@ const StudentDashboard = () => {
           </>
         ) : (
           /* --- Profile under review: waiting for admin approval --- */
+          <>
           <Card className="border-2 border-warning">
             <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-warning/15">
@@ -1759,6 +1765,11 @@ const StudentDashboard = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Waiting students are the most motivated buyers — surface the
+              premium services here too, not just on the approved dashboard. */}
+          <ServicesPromoGrid className="mt-6" />
+          </>
         )}
       </div>
     </div>

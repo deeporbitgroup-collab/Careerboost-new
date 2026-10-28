@@ -10,9 +10,21 @@ interface TalentPoolLanguageContextType {
 
 const TalentPoolLanguageContext = createContext<TalentPoolLanguageContextType | undefined>(undefined);
 
+const LANGUAGE_STORAGE_KEY = 'talentPoolLanguage';
+
+/** Pick the initial language: a previously saved choice wins, otherwise we
+ *  auto-detect from the browser (Italian visitors get IT, everyone else EN)
+ *  so the landing no longer defaults the whole Italian audience to English. */
+const getInitialLanguage = (): TalentPoolLanguage => {
+  if (typeof window === 'undefined') return 'en';
+  const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  if (saved === 'it' || saved === 'en') return saved;
+  const browser = (window.navigator.language || '').toLowerCase();
+  return browser.startsWith('it') ? 'it' : 'en';
+};
+
 export const TalentPoolLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Talent Pool is English-only across the whole product.
-  const [language] = useState<TalentPoolLanguage>('en');
+  const [language, setLanguageState] = useState<TalentPoolLanguage>(getInitialLanguage);
 
   const [translations, setTranslations] = useState<Record<string, any>>({});
 
@@ -28,8 +40,14 @@ export const TalentPoolLanguageProvider: React.FC<{ children: React.ReactNode }>
     loadTranslations();
   }, [language]);
 
-  // English-only: kept for API compatibility, but language never changes.
-  const setLanguage = (_lang: TalentPoolLanguage) => {};
+  // Switch language and persist the choice so it carries across pages (each
+  // page mounts its own provider, so localStorage is what keeps them in sync).
+  const setLanguage = (lang: TalentPoolLanguage) => {
+    setLanguageState(lang);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+    }
+  };
 
   const t = (key: string): string => {
     const keys = key.split('.');

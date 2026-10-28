@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { TalentPoolLanguageProvider, useTalentPoolLanguage } from "@/contexts/TalentPoolLanguageContext";
 import { ForgotPasswordDialog } from "@/components/talent-pool/ForgotPasswordDialog";
+import { GoldenStandardBox, ServicesPromoGrid } from "@/components/talent-pool/TalentPoolServices";
 import { normalizeTalentPoolEmail, talentPoolPasswordHash } from "@/lib/talentPoolPassword";
 
 const studentSchema = z.object({
@@ -562,24 +563,10 @@ const StudentAuthContent = () => {
                     </p>
                   </div>
 
-                  {/* No CV / cover letter yet? Offer the professional rewriting
-                      service (Altitude single products). Direct redirect — the
-                      target product is highlighted on arrival. */}
-                  <div className="rounded-lg border border-sky-blue/30 bg-sky-blue/5 p-4 space-y-2">
-                    <p className="text-sm font-semibold text-sky">Don't have a CV or cover letter yet?</p>
-                    <p className="text-xs text-steel-gray">
-                      Have it written from scratch by a professional who works in your target sector.
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full border-sky-blue/40 text-sky hover:bg-sky-blue/10"
-                      onClick={() => navigate(`/client-portal/services?category=Altitude&service=${encodeURIComponent('CV / Cover Letter Rewrite')}`)}
-                    >
-                      <FileText className="mr-2 h-4 w-4" />
-                      Get my CV / cover letter written by a pro →
-                    </Button>
-                  </div>
+                  {/* Golden Standard: CV and cover letter must meet industry
+                      standards in BOTH form and content, or they're rejected on
+                      sight. The expert-rewrite CTA routes to WhatsApp. */}
+                  <GoldenStandardBox />
                 </div>
 
                 <div className="space-y-2">
@@ -698,6 +685,10 @@ const StudentAuthContent = () => {
                   {isLoading ? t('studentAuth.register.loading') : t('studentAuth.register.button')}
                 </Button>
               </form>
+
+              {/* Boost your chances: tailored database + email software + expert
+                  CV/cover rewrite. All route to WhatsApp. */}
+              <ServicesPromoGrid className="mt-6" />
             </TabsContent>
           </Tabs>
         </CardContent>
