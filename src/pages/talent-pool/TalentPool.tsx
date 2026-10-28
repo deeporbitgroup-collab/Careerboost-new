@@ -79,9 +79,9 @@ const TalentPoolContent = () => {
               <Button
                 variant="ghost"
                 onClick={() => navigate('/')}
-                className="text-sm text-sky-100/70 hover:text-sky-50 hover:bg-white/5 border border-transparent hover:border-sky-500/20"
+                className="px-2 text-sm text-sky-100/70 hover:text-sky-50 hover:bg-white/5 border border-transparent hover:border-sky-500/20 md:px-3"
               >
-                ← {t('landing.nav.back')}
+                ← <span className="hidden sm:inline">{t('landing.nav.back')}</span>
               </Button>
             </div>
           </div>

@@ -537,17 +537,18 @@ const StudentAuthContent = () => {
               <form onSubmit={handleRegister} className="space-y-4">
                 {/* Wizard stepper — breaks the long form into Profile / Contacts
                     / Account so students don't face one wall of fields. */}
-                <div className="flex items-center justify-between gap-2 pb-1">
+                <div className="flex items-center gap-1.5 pb-1">
                   {stepLabels.map((lbl, i) => {
                     const n = i + 1;
                     const active = step === n;
                     const done = step > n;
                     return (
-                      <div key={lbl} className="flex items-center gap-2">
-                        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${active ? 'bg-sky text-white' : done ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'}`}>
+                      <div key={lbl} className="flex min-w-0 flex-1 items-center gap-1.5">
+                        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold md:h-7 md:w-7 md:text-xs ${active ? 'bg-sky text-white' : done ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'}`}>
                           {done ? '✓' : n}
                         </span>
-                        <span className={`text-xs font-medium ${active ? 'text-sky' : 'text-steel-gray'}`}>{lbl}</span>
+                        <span className={`truncate text-[11px] font-medium md:text-xs ${active ? 'text-sky' : 'text-steel-gray'}`}>{lbl}</span>
+                        {n < stepLabels.length && <div className="h-px flex-1 bg-border" />}
                       </div>
                     );
                   })}
